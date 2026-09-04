@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Visor 3D interactivo del producto N150AT" />
+    <title>N150AT · Visor 3D</title>
+    <script
+      type="module"
+      src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"
+    ></script>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f5f6f7;
+        color: #30343a;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        min-height: 100dvh;
+        margin: 0;
+      }
+
+      .viewer-page {
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) auto;
+        width: 100%;
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: clamp(12px, 2vw, 24px);
+      }
+
+      .viewer-shell {
+        position: relative;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid rgba(28, 32, 38, 0.08);
+        border-radius: 18px;
+        background: #fafafa;
+        box-shadow: 0 12px 40px rgba(22, 27, 34, 0.07);
+      }
+
+      model-viewer {
+        width: 100%;
+        height: 100%;
+        min-height: 420px;
+        background-color: #fafafa;
+        --poster-color: #fafafa;
+        --progress-bar-color: #555b64;
+      }
+
+      .reset-button {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        z-index: 1;
+        padding: 9px 13px;
+        border: 1px solid rgba(28, 32, 38, 0.16);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.88);
+        color: #30343a;
+        font: inherit;
+        font-size: 0.78rem;
+        cursor: pointer;
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        transition: background-color 160ms ease, transform 160ms ease;
+      }
+
+      .reset-button:hover { background: #fff; }
+      .reset-button:active { transform: scale(0.97); }
+      .reset-button:focus-visible { outline: 2px solid #30343a; outline-offset: 2px; }
+
+      .viewer-status {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 1;
+        width: min(360px, calc(100% - 40px));
+        margin: 0;
+        color: #6f747c;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        text-align: center;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+
+      .viewer-status[hidden] { display: none; }
+      .viewer-status.is-error { color: #a33636; }
+
+      .instructions {
+        margin: 12px 0 0;
+        color: #6f747c;
+        font-size: clamp(0.75rem, 2vw, 0.84rem);
+        letter-spacing: 0.01em;
+        text-align: center;
+      }
+
+      @media (max-width: 600px) {
+        .viewer-page { padding: 8px; }
+        .viewer-shell { border-radius: 13px; }
+        model-viewer { min-height: 360px; }
+        .reset-button { right: 12px; bottom: 12px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="viewer-page">
+      <section class="viewer-shell" aria-label="Visor 3D del producto N150AT">
+        <model-viewer
+          id="product-viewer"
+          src="./N150_web_2.glb"
+          alt="Modelo 3D interactivo del producto N150AT"
+          camera-controls
+          touch-action="none"
+          auto-rotate
+          auto-rotate-delay="1500"
+          rotation-per-second="8deg"
+          camera-orbit="35deg 70deg 110%"
+          camera-target="auto auto auto"
+          field-of-view="30deg"
+          min-camera-orbit="auto auto 80%"
+          max-camera-orbit="auto auto 250%"
+          min-field-of-view="22deg"
+          max-field-of-view="45deg"
+          shadow-intensity="1"
+          shadow-softness="0.85"
+          exposure="1"
+          ar
+          ar-modes="webxr scene-viewer quick-look"
+          ar-scale="fixed"
+          ar-placement="floor"
+        ></model-viewer>
+        <p id="viewer-status" class="viewer-status" role="status">Cargando modelo 3D…</p>
+        <button class="reset-button" type="button">Reset view</button>
+      </section>
+      <p class="instructions">Drag to rotate · Scroll to zoom</p>
+    </main>
+
+    <script>
+      const viewer = document.querySelector("#product-viewer");
+      const resetButton = document.querySelector(".reset-button");
+      const status = document.querySelector("#viewer-status");
+      const initialView = {
+        orbit: "35deg 70deg 110%",
+        target: "auto auto auto",
+        fieldOfView: "30deg",
+      };
+
+      resetButton.addEventListener("click", () => {
+        viewer.cameraOrbit = initialView.orbit;
+        viewer.cameraTarget = initialView.target;
+        viewer.fieldOfView = initialView.fieldOfView;
+        if (typeof viewer.resetTurntableRotation === "function") {
+          viewer.resetTurntableRotation();
+        }
+
+        if (typeof viewer.jumpCameraToGoal === "function") {
+          viewer.jumpCameraToGoal();
+        }
+      });
+
+      viewer.addEventListener("load", () => {
+        status.hidden = true;
+      });
+
+      viewer.addEventListener("error", () => {
+        status.hidden = false;
+        status.classList.add("is-error");
+        status.textContent = window.location.protocol === "file:"
+          ? "Abre esta carpeta con un servidor local (Live Server o http://localhost:8000)."
+          : "No se pudo cargar N150_web_2.glb. Revisa la consola del navegador.";
+      });
+
+      if (window.location.protocol === "file:") {
+        status.classList.add("is-error");
+        status.textContent = "Este visor necesita un servidor local. Usa Live Server o http://localhost:8000.";
+      }
+    </script>
+  </body>
+</html>
