@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Visor 3D interactivo del producto PitBoss 150" />
+    <meta name="description" content="Visor 3D interactivo de Atlas, PitBoss y SureLoc" />
     <title>PitBoss 150 · Visor 3D</title>
     <script
       type="module"
@@ -76,6 +76,21 @@
       .reset-button:active { transform: scale(0.97); }
       .reset-button:focus-visible { outline: 2px solid #30343a; outline-offset: 2px; }
 
+      .model-selector {
+        position: absolute;
+        top: 16px;
+        left: 12px;
+        right: 12px;
+        z-index: 2;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .model-selector button { position: static; }
+      .model-selector [aria-pressed="true"] { background: #30343a; color: #fff; }
+      .model-selector button:disabled { opacity: 0.45; cursor: not-allowed; }
+
       .dimension-toggle { left: 16px; right: auto; }
       .dimension-toggle[aria-pressed="true"] { background: #30343a; color: #fff; }
       .dimension-anchor { width: 0; height: 0; pointer-events: none; }
@@ -136,6 +151,12 @@
   <body>
     <main class="viewer-page">
       <section class="viewer-shell" aria-label="Visor 3D del producto PitBoss 150">
+        <div class="model-selector" role="group" aria-label="Seleccionar modelo">
+          <button class="reset-button" type="button" data-model="atlas" aria-pressed="false">Atlas</button>
+          <button class="reset-button" type="button" data-model="pitboss" aria-pressed="true">PitBoss</button>
+          <button class="reset-button" type="button" disabled title="Modelo todavía no disponible">SureLoc 150</button>
+          <button class="reset-button" type="button" disabled title="Modelo todavía no disponible">SureLoc 1000</button>
+        </div>
         <model-viewer
           id="product-viewer"
           src="./PitBoss_150_Visor_3D.glb"
@@ -175,6 +196,33 @@
       const dimensionOverlay = document.querySelector(".dimension-overlay");
       const mobileView = matchMedia("(max-width: 600px)");
       const status = document.querySelector("#viewer-status");
+      const models = {
+        atlas: { name: "Atlas", src: "./N150_web_2.glb", orientation: "0deg 0deg 0deg", angle: "90deg" },
+        pitboss: { name: "PitBoss", src: "./PitBoss_150_Visor_3D.glb", orientation: "0deg 90deg 0deg", angle: "0deg" },
+      };
+      let selectedModel = "pitboss";
+      const modelButtons = document.querySelectorAll("[data-model]");
+      modelButtons.forEach(button => button.addEventListener("click", () => {
+        if (button.dataset.model === selectedModel && !status.classList.contains("is-error")) return;
+        selectedModel = button.dataset.model;
+        const model = models[selectedModel];
+        modelButtons.forEach(item => item.setAttribute("aria-pressed", String(item === button)));
+        dimensions.length = 0;
+        dimensionOverlay.replaceChildren();
+        viewer.querySelectorAll(".dimension-anchor").forEach(anchor => anchor.remove());
+        dimensionOverlay.setAttribute("hidden", "");
+        dimensionToggle.disabled = true;
+        status.hidden = false;
+        status.classList.remove("is-error");
+        status.textContent = "Cargando modelo 3D…";
+        document.title = `${model.name} · Visor 3D`;
+        viewer.alt = `Modelo 3D interactivo del producto ${model.name}`;
+        document.querySelector(".viewer-shell").setAttribute("aria-label", `Visor 3D del producto ${model.name}`);
+        viewer.orientation = model.orientation;
+        initialView.orbit = `${model.angle} 90deg 125%`;
+        initialView.target = "auto auto auto";
+        viewer.src = model.src;
+      }));
       const initialView = {
         orbit: "0deg 90deg 125%",
         target: "auto auto auto",
@@ -234,7 +282,7 @@
       });
 
       resetButton.addEventListener("click", () => {
-        viewer.cameraOrbit = mobileView.matches ? "0deg 90deg 160%" : initialView.orbit;
+        viewer.cameraOrbit = mobileView.matches ? `${models[selectedModel].angle} 90deg 160%` : initialView.orbit;
         viewer.cameraTarget = initialView.target;
         viewer.fieldOfView = initialView.fieldOfView;
         if (typeof viewer.resetTurntableRotation === "function") {
@@ -251,26 +299,47 @@
         if (dimensions.length) return;
         const size = viewer.getDimensions();
         const center = viewer.getBoundingBoxCenter();
-        initialView.target = `${center.x - 0.05} ${center.y} ${center.z}`;
-        const bottom = center.y - size.y / 2;
-        const top = center.y + size.y / 2;
-        const front = center.x - size.x / 2;
-        const back = center.x + size.x / 2;
-        const axisY = 0.02957697;
-        addDimension("length", "356", "14", [
-          [front, bottom - 0.006, 0], [front, bottom - 0.032, 0],
-          [back, bottom - 0.032, 0], [back, bottom - 0.006, 0],
-        ]);
-        addDimension("height", "209", "8.2", [
-          [front - 0.095, bottom, 0], [front - 0.12, bottom, 0],
-          [front - 0.12, top, 0], [front - 0.095, top, 0],
-        ]);
-        addDimension("diameter", "76", "3.0", [
-          [front - 0.006, axisY - 0.038, 0], [front - 0.042, axisY - 0.038, 0],
-          [front - 0.042, axisY + 0.038, 0], [front - 0.006, axisY + 0.038, 0],
-        ]);
+        if (selectedModel === "atlas") {
+          initialView.target = `${center.x} ${center.y} ${center.z + 0.05}`;
+          const bottom = center.y - size.y / 2;
+          const top = center.y + size.y / 2;
+          const front = center.z + size.z / 2;
+          const back = center.z - size.z / 2;
+          addDimension("length", "377", "14.84", [
+            [0, bottom - 0.006, front], [0, bottom - 0.032, front],
+            [0, bottom - 0.032, back], [0, bottom - 0.006, back],
+          ]);
+          addDimension("height", "165", "6.5", [
+            [0, bottom, front + 0.095], [0, bottom, front + 0.12],
+            [0, top, front + 0.12], [0, top, front + 0.095],
+          ]);
+          addDimension("diameter", "76", "3", [
+            [0, -0.038, front + 0.006], [0, -0.038, front + 0.042],
+            [0, 0.038, front + 0.042], [0, 0.038, front + 0.006],
+          ]);
+        } else {
+          initialView.target = `${center.x - 0.05} ${center.y} ${center.z}`;
+          const bottom = center.y - size.y / 2;
+          const top = center.y + size.y / 2;
+          const front = center.x - size.x / 2;
+          const back = center.x + size.x / 2;
+          const axisY = 0.02957697;
+          addDimension("length", "356", "14", [
+            [front, bottom - 0.006, 0], [front, bottom - 0.032, 0],
+            [back, bottom - 0.032, 0], [back, bottom - 0.006, 0],
+          ]);
+          addDimension("height", "209", "8.2", [
+            [front - 0.095, bottom, 0], [front - 0.12, bottom, 0],
+            [front - 0.12, top, 0], [front - 0.095, top, 0],
+          ]);
+          addDimension("diameter", "76", "3.0", [
+            [front - 0.006, axisY - 0.038, 0], [front - 0.042, axisY - 0.038, 0],
+            [front - 0.042, axisY + 0.038, 0], [front - 0.006, axisY + 0.038, 0],
+          ]);
+        }
+        dimensionOverlay.setAttribute("aria-label", `Medidas según plano: ${dimensionOverlay.textContent}`);
         dimensionToggle.disabled = false;
-        dimensionOverlay.removeAttribute("hidden");
+        dimensionOverlay.toggleAttribute("hidden", dimensionToggle.getAttribute("aria-pressed") !== "true");
         resetButton.click();
         requestAnimationFrame(drawDimensions);
       });
@@ -280,7 +349,7 @@
         status.classList.add("is-error");
         status.textContent = window.location.protocol === "file:"
           ? "Abre esta carpeta con un servidor local (Live Server o http://localhost:8000)."
-          : "No se pudo cargar PitBoss_150_Visor_3D.glb. Revisa la consola del navegador.";
+          : `No se pudo cargar ${models[selectedModel].name}. Vuelve a seleccionar el modelo para reintentar.`;
       });
 
       if (window.location.protocol === "file:") {
