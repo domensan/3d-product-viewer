@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Visor 3D interactivo del producto N150AT" />
-    <title>N150AT · Visor 3D</title>
+    <meta name="description" content="Visor 3D interactivo del producto PitBoss 150" />
+    <title>PitBoss 150 · Visor 3D</title>
     <script
       type="module"
       src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"
@@ -135,16 +135,17 @@
   </head>
   <body>
     <main class="viewer-page">
-      <section class="viewer-shell" aria-label="Visor 3D del producto N150AT">
+      <section class="viewer-shell" aria-label="Visor 3D del producto PitBoss 150">
         <model-viewer
           id="product-viewer"
-          src="./N150_web_2.glb"
-          alt="Modelo 3D interactivo del producto N150AT"
+          src="./PitBoss_150_Visor_3D.glb"
+          alt="Modelo 3D interactivo del producto PitBoss 150"
           camera-controls
+          orientation="0deg 90deg 0deg"
           touch-action="none"
           auto-rotate-delay="1500"
           rotation-per-second="8deg"
-          camera-orbit="90deg 90deg 125%"
+          camera-orbit="0deg 90deg 125%"
           camera-target="auto auto auto"
           field-of-view="30deg"
           min-camera-orbit="auto auto 80%"
@@ -159,7 +160,7 @@
           ar-scale="fixed"
           ar-placement="floor"
         ></model-viewer>
-        <svg class="dimension-overlay" hidden role="img" aria-label="Medidas según plano: largo 377 mm, 14.84 pulgadas; alto 165 mm, 6.5 pulgadas; diámetro 76 mm, 3 pulgadas."></svg>
+        <svg class="dimension-overlay" hidden role="img" aria-label="Medidas según plano: largo 356 mm, 14 pulgadas; alto 209 mm, 8.2 pulgadas; diámetro 76 mm, 3 pulgadas."></svg>
         <p id="viewer-status" class="viewer-status" role="status">Cargando modelo 3D…</p>
         <button class="reset-button dimension-toggle" type="button" aria-pressed="true" disabled>Medidas</button>
         <button class="reset-button reset-view" type="button">Restablecer vista</button>
@@ -175,13 +176,13 @@
       const mobileView = matchMedia("(max-width: 600px)");
       const status = document.querySelector("#viewer-status");
       const initialView = {
-        orbit: "90deg 90deg 125%",
+        orbit: "0deg 90deg 125%",
         target: "auto auto auto",
         fieldOfView: "30deg",
       };
 
       // Nominal values from the supplied drawing; the GLB bounds only place the guides.
-      // The nozzle runs along Z, with its outlet at +Z and its axis at Y = 0.
+      // The PitBoss outlet faces -X; orientation rotates its original Z axis upright.
       const dimensions = [];
       function addDimension(name, mm, inches, positions) {
         const slots = positions.map((position, index) => {
@@ -233,7 +234,7 @@
       });
 
       resetButton.addEventListener("click", () => {
-        viewer.cameraOrbit = mobileView.matches ? "90deg 90deg 160%" : initialView.orbit;
+        viewer.cameraOrbit = mobileView.matches ? "0deg 90deg 160%" : initialView.orbit;
         viewer.cameraTarget = initialView.target;
         viewer.fieldOfView = initialView.fieldOfView;
         if (typeof viewer.resetTurntableRotation === "function") {
@@ -250,22 +251,23 @@
         if (dimensions.length) return;
         const size = viewer.getDimensions();
         const center = viewer.getBoundingBoxCenter();
-        initialView.target = `${center.x} ${center.y} ${center.z + 0.05}`;
+        initialView.target = `${center.x - 0.05} ${center.y} ${center.z}`;
         const bottom = center.y - size.y / 2;
         const top = center.y + size.y / 2;
-        const front = center.z + size.z / 2;
-        const back = center.z - size.z / 2;
-        addDimension("length", "377", "14.84", [
-          [0, bottom - 0.006, front], [0, bottom - 0.032, front],
-          [0, bottom - 0.032, back], [0, bottom - 0.006, back],
+        const front = center.x - size.x / 2;
+        const back = center.x + size.x / 2;
+        const axisY = 0.02957697;
+        addDimension("length", "356", "14", [
+          [front, bottom - 0.006, 0], [front, bottom - 0.032, 0],
+          [back, bottom - 0.032, 0], [back, bottom - 0.006, 0],
         ]);
-        addDimension("height", "165", "6.5", [
-          [0, bottom, front + 0.077], [0, bottom, front + 0.102],
-          [0, top, front + 0.102], [0, top, front + 0.077],
+        addDimension("height", "209", "8.2", [
+          [front - 0.095, bottom, 0], [front - 0.12, bottom, 0],
+          [front - 0.12, top, 0], [front - 0.095, top, 0],
         ]);
-        addDimension("diameter", "76", "3", [
-          [0, -0.038, front + 0.006], [0, -0.038, front + 0.042],
-          [0, 0.038, front + 0.042], [0, 0.038, front + 0.006],
+        addDimension("diameter", "76", "3.0", [
+          [front - 0.006, axisY - 0.038, 0], [front - 0.042, axisY - 0.038, 0],
+          [front - 0.042, axisY + 0.038, 0], [front - 0.006, axisY + 0.038, 0],
         ]);
         dimensionToggle.disabled = false;
         dimensionOverlay.removeAttribute("hidden");
@@ -278,7 +280,7 @@
         status.classList.add("is-error");
         status.textContent = window.location.protocol === "file:"
           ? "Abre esta carpeta con un servidor local (Live Server o http://localhost:8000)."
-          : "No se pudo cargar N150_web_2.glb. Revisa la consola del navegador.";
+          : "No se pudo cargar PitBoss_150_Visor_3D.glb. Revisa la consola del navegador.";
       });
 
       if (window.location.protocol === "file:") {
