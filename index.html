@@ -155,7 +155,7 @@
           <button class="reset-button" type="button" data-model="atlas" aria-pressed="false">Atlas</button>
           <button class="reset-button" type="button" data-model="pitboss" aria-pressed="true">PitBoss</button>
           <button class="reset-button" type="button" data-model="sureloc150" aria-pressed="false">SureLoc 150</button>
-          <button class="reset-button" type="button" disabled title="Modelo todavía no disponible">SureLoc 1000</button>
+          <button class="reset-button" type="button" data-model="sureloc1000" aria-pressed="false">SureLoc 1000</button>
         </div>
         <model-viewer
           id="product-viewer"
@@ -198,6 +198,7 @@
       const status = document.querySelector("#viewer-status");
       const models = {
         atlas: { name: "Atlas", src: "./N150_web_2.glb", orientation: "0deg 0deg 0deg", angle: "90deg" },
+        sureloc1000: { name: "SureLoc 1000", src: "./SureLoc1000_WEB_3D.glb", orientation: "180deg 0deg 0deg", angle: "90deg" },
         sureloc150: { name: "SureLoc 150", src: "./SureLoc150_Web_3D.glb", orientation: "0deg 0deg 0deg", angle: "90deg" },
         pitboss: { name: "PitBoss", src: "./PitBoss_150_Visor_3D.glb", orientation: "0deg 90deg 0deg", angle: "0deg" },
       };
@@ -314,9 +315,10 @@
             [0, bottom, front + 0.095], [0, bottom, front + 0.12],
             [0, top, front + 0.12], [0, top, front + 0.095],
           ]);
+          const axisY = selectedModel === "sureloc1000" ? 0.01817377 : 0;
           addDimension("diameter", "76", "3", [
-            [0, -0.038, front + 0.006], [0, -0.038, front + 0.042],
-            [0, 0.038, front + 0.042], [0, 0.038, front + 0.006],
+            [0, axisY - 0.038, front + 0.006], [0, axisY - 0.038, front + 0.042],
+            [0, axisY + 0.038, front + 0.042], [0, axisY + 0.038, front + 0.006],
           ]);
         } else {
           initialView.target = `${center.x - 0.05} ${center.y} ${center.z}`;
