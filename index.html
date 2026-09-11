@@ -159,10 +159,10 @@
         </div>
         <model-viewer
           id="product-viewer"
-          src="./N150_web_2.glb"
+          src="./N150_web_2.glb?v=20260911"
           alt="Modelo 3D interactivo del producto Atlas"
           camera-controls
-          orientation="0deg 0deg 0deg"
+          orientation="0deg 0deg 90deg"
           touch-action="none"
           auto-rotate-delay="1500"
           rotation-per-second="8deg"
@@ -197,7 +197,7 @@
       const mobileView = matchMedia("(max-width: 600px)");
       const status = document.querySelector("#viewer-status");
       const models = {
-        atlas: { name: "Atlas", src: "./N150_web_2.glb", orientation: "0deg 0deg 0deg", angle: "90deg" },
+        atlas: { name: "Atlas", src: "./N150_web_2.glb?v=20260911", orientation: "0deg 0deg 90deg", angle: "90deg" },
         sureloc1000: { name: "SureLoc 1000", src: "./SureLoc1000_WEB_3D.glb", orientation: "180deg 0deg 0deg", angle: "90deg" },
         sureloc150: { name: "SureLoc 150", src: "./SureLoc150_Web_3D.glb", orientation: "0deg 0deg 0deg", angle: "90deg" },
         pitboss: { name: "PitBoss", src: "./PitBoss_150_Visor_3D.glb", orientation: "0deg 90deg 0deg", angle: "0deg" },
